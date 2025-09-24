@@ -9,6 +9,9 @@
 #define _YATO_TOKEN_ITERATOR_H_
 
 #include <string>
+#ifndef YATO_UNDEF_TOKENS_JOIN
+# include <sstream>
+#endif
 
 #include "assertion.h"
 #include "type_traits.h"
@@ -349,6 +352,104 @@ namespace yato
     {
         return yato::make_range(make_token_iterator(range.begin(), range.end(), std::forward<Pred_>(p), skip_empty), tokens_end_t{});
     }
+
+
+    namespace details {
+
+        template <typename CharTy_, typename Tokenizer_>
+        inline
+        std::vector<std::basic_string<CharTy_>> split_impl(Tokenizer_ t)
+        {
+            std::vector<std::basic_string<CharTy_>> res{};
+            while (t.has_next()) {
+                auto token = t.next();
+                res.emplace_back(token.begin(), token.end());
+            }
+            return res;
+        }
+
+    } // details
+
+
+    template <typename CharTy_>
+    inline
+    std::vector<std::basic_string<CharTy_>> split(const std::basic_string<CharTy_>& str, const CharTy_& sep, bool skip_empty = false)
+    {
+        return details::split_impl<CharTy_>(yato::tokenize(str, sep, skip_empty));
+    }
+
+    template <typename CharTy_>
+    inline
+    std::vector<std::basic_string<CharTy_>> split(const std::basic_string<CharTy_>& str, const std::basic_string<CharTy_>& seps, bool skip_empty = false)
+    {
+        return details::split_impl<CharTy_>(yato::tokenize_if(std::cbegin(str), std::cend(str), [&seps](const CharTy_& c) { return seps.find_first_of(c) != std::basic_string<CharTy_>::npos; }, skip_empty));
+    }
+
+    template <typename CharTy_>
+    inline
+    std::vector<std::basic_string<CharTy_>> split(const std::basic_string<CharTy_>& str, const CharTy_* seps, bool skip_empty = false)
+    {
+        YATO_ASSERT(seps != nullptr, "separators pointer is null");
+        return split(str, static_cast<std::basic_string<CharTy_>>(seps), skip_empty);
+    }
+
+    template <typename CharTy_, typename Pred_>
+    inline
+    std::vector<std::basic_string<CharTy_>> split_if(const std::basic_string<CharTy_>& str, Pred_&& p, bool skip_empty = false)
+    {
+        return details::split_impl<CharTy_>(yato::tokenize_if(std::cbegin(str), std::cend(str), std::forward<Pred_>(p), skip_empty));
+    }
+
+    inline
+    std::vector<std::string> split_n(const char* str, size_t n, const char& sep, bool skip_empty = false)
+    {
+        return details::split_impl<char>(yato::tokenize_n(str, n, sep, skip_empty));
+    }
+
+    inline
+    std::vector<std::wstring> split_n(const wchar_t* str, size_t n, const wchar_t& sep, bool skip_empty = false)
+    {
+        return details::split_impl<wchar_t>(yato::tokenize_n(str, n, sep, skip_empty));
+    }
+
+#ifndef YATO_UNDEF_TOKENS_JOIN
+
+    namespace details {
+
+        template <typename CharTy_, typename Iter1_, typename Iter2_, typename Sep_, typename Pref_, typename Suff_>
+        inline
+        std::basic_string<CharTy_> join_impl(Iter1_ beg, Iter2_ end, const Sep_& sep, const Pref_& prefix, const Suff_& suffix)
+        {
+            std::basic_stringstream<CharTy_> builder{};
+            builder << prefix;
+            if (beg != end) {
+                builder << *beg++;
+            }
+            while (beg != end) {
+                builder << sep << *beg++;
+            }
+            builder << suffix;
+            return builder.str();
+        }
+
+    } // details
+
+    template <typename Iter1_, typename Iter2_, typename Sep_ = std::string, typename Pref_ = std::string, typename Suff_ = std::string>
+    inline
+    std::string join(Iter1_&& beg, Iter2_&& end, const Sep_& sep = Sep_{}, const Pref_& prefix = Pref_{}, const Suff_& suffix = Suff_{})
+    {
+        return details::join_impl<char>(std::forward<Iter1_>(beg), std::forward<Iter2_>(end), sep, prefix, suffix);
+    }
+
+    template <typename Iter1_, typename Iter2_, typename Sep_ = std::wstring, typename Pref_ = std::wstring, typename Suff_ = std::wstring>
+    inline
+    std::wstring wjoin(Iter1_&& beg, Iter2_&& end, const Sep_& sep = Sep_{}, const Pref_& prefix = Pref_{}, const Suff_& suffix = Suff_{})
+    {
+        return details::join_impl<wchar_t>(std::forward<Iter1_>(beg), std::forward<Iter2_>(end), sep, prefix, suffix);
+    }
+
+
+#endif // YATO_UNDEF_TOKENS_JOIN
 }
 
 #endif //_YATO_TOKEN_ITERATOR_H_

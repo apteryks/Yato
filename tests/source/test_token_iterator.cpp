@@ -110,6 +110,46 @@ TEST(Yato_TokenIterator, nonconst)
     ASSERT_EQ("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG", str);
 }
 
+TEST(Yato_TokenIterator, split)
+{
+    std::string str = "The quick brown fox jumps over the lazy dog";
+    auto res1 = yato::split(str, ' ', true);
+    auto res2 = yato::split(str, "| _", true);
+    auto res3 = yato::split_if(str, [](char c) { return std::isspace(c); }, true);
+    auto res4 = yato::split_n(str.c_str(), str.size(), ' ');
+
+    ASSERT_EQ(static_cast<size_t>(9), res1.size());
+    ASSERT_EQ(static_cast<size_t>(9), res2.size());
+    ASSERT_EQ(static_cast<size_t>(9), res3.size());
+    ASSERT_EQ(static_cast<size_t>(9), res4.size());
+    ASSERT_TRUE(std::equal(std::cbegin(res1), std::cend(res1), std::cbegin(res2)));
+    ASSERT_TRUE(std::equal(std::cbegin(res1), std::cend(res1), std::cbegin(res3)));
+    ASSERT_TRUE(std::equal(std::cbegin(res1), std::cend(res1), std::cbegin(res4)));
+
+    auto jres = yato::join(res1.cbegin(), res1.cend(), " ");
+    ASSERT_EQ(jres, str);
+}
+
+TEST(Yato_TokenIterator, wsplit)
+{
+    std::wstring str = L"The quick brown fox jumps over the lazy dog";
+    auto res1 = yato::split(str, L' ', true);
+    auto res2 = yato::split(str, L"| _", true);
+    auto res3 = yato::split_if(str, [](wchar_t c) { return std::isspace(c); }, true);
+    auto res4 = yato::split_n(str.c_str(), str.size(), L' ');
+
+    ASSERT_EQ(static_cast<size_t>(9), res1.size());
+    ASSERT_EQ(static_cast<size_t>(9), res2.size());
+    ASSERT_EQ(static_cast<size_t>(9), res3.size());
+    ASSERT_EQ(static_cast<size_t>(9), res4.size());
+    ASSERT_TRUE(std::equal(std::cbegin(res1), std::cend(res1), std::cbegin(res2)));
+    ASSERT_TRUE(std::equal(std::cbegin(res1), std::cend(res1), std::cbegin(res3)));
+    ASSERT_TRUE(std::equal(std::cbegin(res1), std::cend(res1), std::cbegin(res4)));
+
+    auto jres = yato::wjoin(res1.cbegin(), res1.cend(), L" ");
+    ASSERT_EQ(jres, str);
+}
+
 
 #if (YATO_MSVC >= YATO_MSVC_2017) || defined(YATO_CXX17)
 
