@@ -5,7 +5,7 @@
 # Copyright (c) 2016-2020 Alexey Gruzdev
 #
 
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.15)
 
 if(NOT YATO_NO_PROJECT_FOLDERS)
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
