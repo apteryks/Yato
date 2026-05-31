@@ -135,7 +135,7 @@ if(YATO_BUILD_TESTS)
     add_subdirectory(./tests)
 endif()
 
-option(YATO_BUILD_PERFORMANCE_TESTS "Buidl performance tests" OFF)
+option(YATO_BUILD_PERFORMANCE_TESTS "Build performance tests" OFF)
 if(YATO_BUILD_PERFORMANCE_TESTS)
     add_subdirectory(./perf_tests)
 endif()
