@@ -34,6 +34,7 @@ if(NOT TARGET gtest)
     set(BUILD_GTEST ON  CACHE BOOL "gtest setup" FORCE)
     set(BUILD_GMOCK OFF CACHE BOOL "gtest setup" FORCE)
     set(BUILD_SHARED_LIBS OFF CACHE BOOL "gtest setup" FORCE)
+    set(INSTALL_GTEST OFF CACHE BOOL "gtest setup" FORCE)
     set(gtest_disable_pthreads ON CACHE BOOL "gtest setup" FORCE)
     set(gtest_force_shared_crt ON CACHE BOOL "gtest setup" FORCE)
 
