@@ -5,7 +5,7 @@
 # Copyright (c) 2016-2020 Alexey Gruzdev
 #
 
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.15)
 
 if(NOT YATO_NO_PROJECT_FOLDERS)
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -13,7 +13,10 @@ endif()
 
 set(YATO_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
-project(Yato)
+project(Yato VERSION 1.2.0 LANGUAGES CXX)
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 #==========================================
 # Output
@@ -48,11 +51,6 @@ if(MSVC)
     list(APPEND yato_extra_sources ${YATO_SOURCE_DIR}/extras/yato.natvis)
 endif()
 
-add_custom_target(Yato SOURCES ${yato_sources}
-                               ${yato_extra_sources}
-)
-set_property(TARGET Yato PROPERTY FOLDER "Modules")
-
 #==========================================
 # Targets
 
@@ -78,6 +76,57 @@ if(YATO_BUILD_ACTORS)
     list(APPEND YATO_INCLUDE_DIRS "${YATO_SOURCE_DIR}/modules/actors")
 endif()
 
+
+add_library(Yato INTERFACE)
+
+set_property(TARGET Yato PROPERTY FOLDER "Modules")
+
+target_sources(Yato INTERFACE
+    FILE_SET HEADERS
+    BASE_DIRS ${YATO_SOURCE_DIR}/include
+    FILES ${yato_sources}
+)
+
+target_include_directories(Yato INTERFACE
+    $<BUILD_INTERFACE:${YATO_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+
+#==========================================
+# Installation
+
+# Generate and install CMake config files.
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/YatoConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/YatoConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/YatoConfig.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Yato
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/YatoConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/YatoConfigVersion.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Yato
+)
+
+# Install header-only library.
+install(TARGETS Yato
+    EXPORT YatoTargets
+    FILE_SET HEADERS
+)
+
+install(EXPORT YatoTargets
+    FILE YatoTargets.cmake
+    NAMESPACE Yato::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Yato
+)
+
 #==========================================
 # Tests
 
@@ -86,7 +135,7 @@ if(YATO_BUILD_TESTS)
     add_subdirectory(./tests)
 endif()
 
-option(YATO_BUILD_PERFORMANCE_TESTS "Buidl performance tests" OFF)
+option(YATO_BUILD_PERFORMANCE_TESTS "Build performance tests" OFF)
 if(YATO_BUILD_PERFORMANCE_TESTS)
     add_subdirectory(./perf_tests)
 endif()
